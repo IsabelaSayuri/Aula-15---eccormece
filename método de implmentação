@@ -1,0 +1,84 @@
+from abc import ABC, abstractmethod
+
+# Classe abstrata de pagamento
+class Pagamento(ABC):
+
+    @abstractmethod
+    def pagar(self, valor):
+        pass
+
+# Pagamento com cartão
+class PagamentoCartao(Pagamento):
+
+    def pagar(self, valor):
+        print(f"Pagamento de R$ {valor:.2f} realizado com CARTÃO.")
+
+# Pagamento com PIX
+class PagamentoPix(Pagamento):
+
+    def pagar(self, valor):
+        print(f"Pagamento de R$ {valor:.2f} realizado com PIX.")
+
+# Pagamento com Boleto
+class PagamentoBoleto(Pagamento):
+
+    def pagar(self, valor):
+        print(f"Pagamento de R$ {valor:.2f} realizado com Boleto.")
+
+# Factory Method
+class FabricaPagamento:
+
+    @staticmethod
+    def criar_pagamento(tipo):
+        # .lower() ajuda a evitar erros caso digitem "Pix" ou "Cartao"
+        tipo = tipo.lower() 
+        
+        if tipo == "cartao":
+            return PagamentoCartao()
+        
+        elif tipo == "pix":
+            return PagamentoPix()
+            
+        elif tipo == "boleto":
+            return PagamentoBoleto()
+        
+        else:
+            raise ValueError("Tipo de pagamento inválido.")
+
+class Validador:
+    def __init__(self):
+        self.proximo = None
+
+    def definir_proximo(self, proximo_validador):
+        self.proximo = proximo_validador
+        return proximo_validador
+
+    def processar(self, pedido):
+        if self.proximo:
+            return self.proximo.processar(pedido)
+        return True
+
+# Verifica valor mínimo
+class ValidarValorMinimo(Validador):
+
+    def processar(self, pedido):
+
+        if pedido["valor"] < 10:
+            print("Pedido abaixo do valor mínimo.")
+            return False
+        
+        print("Valor mínimo validado.")
+        return super().processar(pedido)
+
+# Verifica CPF
+class ValidarCPF(Validador):
+
+    def processar(self, pedido):
+        cpf_limpo = ''.join(filter(str.isdigit, str(pedido.get("cpf", ""))))
+
+        if len(cpf_limpo) != 11:
+            print("CPF inválido.")
+            return False
+        
+        print("CPF validado.")
+        return super().processar(pedido)
